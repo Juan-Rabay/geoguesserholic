@@ -1,13 +1,17 @@
 /* ============================================================
-   ATLAS — lógica da interface
+   ATLAS — lógica de interfaz (multiidioma)
+   Base de contenido: português. Capas es/en en GG.tr, con fallback.
    ============================================================ */
 (function () {
   "use strict";
 
   var C = (window.GG && window.GG.countries) || [];
   var GUIDES = (window.GG && window.GG.guides) || [];
+  var UI = (window.GG && window.GG.ui) || {};
+  var TR = (window.GG && window.GG.tr) || {};
+  var LANGS = (window.GG && window.GG.langs) || [{ code: "pt", short: "PT", label: "Português" }];
 
-  /* mescla as pistas vivas (frota, flora, fauna) por id */
+  /* mezcla las pistas vivas (flota, flora, fauna) por id */
   var EXTRA = (window.GG && window.GG.extra) || {};
   C.forEach(function (c) {
     var e = EXTRA[c.id];
@@ -20,44 +24,90 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
-  /* ---------- utilidades ---------- */
   function norm(s) {
     return String(s == null ? "" : s)
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase();
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   }
   function strip(s) { return String(s == null ? "" : s).replace(/<[^>]*>/g, ""); }
 
-  var REGIONS = ["Europa", "Ásia", "África", "Américas", "Oceania"];
-  var DIF_LABEL = { 1: "Muito fácil", 2: "Fácil", 3: "Média", 4: "Difícil", 5: "Muito difícil" };
+  /* ---------- idioma ---------- */
+  var LANG = (function () {
+    try {
+      var s = localStorage.getItem("atlas-lang");
+      if (s && UI[s]) return s;
+    } catch (e) {}
+    var nav = (navigator.language || "").slice(0, 2).toLowerCase();
+    if (UI[nav]) return nav;
+    return UI.es ? "es" : "pt";
+  })();
 
-  /* índice de busca — inclui nome, ficha, metas, regiões e confusões */
-  C.forEach(function (c) {
-    var m = c.m || {};
-    c._q = norm(strip([
-      c.n, c.en, c.rg, c.lang, c.scr, c.dom, c.side, c.cov, c.plate, c.tldr,
-      (c.quick || []).join(" "),
-      [m.car, m.bol, m.pol, m.road, m.sign, m.arch, m.nat, m.extra].join(" "),
-      [c.cars, c.flora, c.fauna].join(" "),
-      (c.rgs || []).map(function (r) { return r.n + " " + r.t; }).join(" "),
-      (c.cf || []).map(function (r) { return r.n + " " + r.t; }).join(" ")
-    ].join(" ")));
-  });
+  function t(k) {
+    var d = UI[LANG] || {};
+    return d[k] != null ? d[k] : (UI.pt && UI.pt[k] != null ? UI.pt[k] : k);
+  }
+  /* traducción de contenido de país, con fallback al portugués */
+  function tc(c, field) {
+    var e = TR[LANG] && TR[LANG][c.id];
+    if (e && e[field] != null) return e[field];
+    return c[field];
+  }
+  function tcm(c, key) {
+    var e = TR[LANG] && TR[LANG][c.id];
+    if (e && e.m && e.m[key] != null) return e.m[key];
+    return (c.m || {})[key];
+  }
+  function name(c) {
+    var m = TR[LANG] && TR[LANG]._names;
+    if (m && m[c.id]) return m[c.id];
+    if (LANG === "en") return c.en;
+    return c.n;
+  }
+  function enumT(kind, v) { var d = (UI[LANG] || {})[kind] || {}; return d[v] || v; }
+  function difLabel(n) { return ((UI[LANG] || {}).dif || {})[n] || n; }
 
-  C.sort(function (a, b) { return a.n.localeCompare(b.n, "pt-BR"); });
+  /* ---------- bandera: emoji -> código ISO -> imagen ---------- */
+  function iso(fl) {
+    var cp = Array.from(String(fl || "")).map(function (ch) { return ch.codePointAt(0); });
+    if (cp.length < 2 || cp[0] < 0x1F1E6 || cp[0] > 0x1F1FF) return "";
+    return cp.slice(0, 2).map(function (c) {
+      return String.fromCharCode(c - 0x1F1E6 + 97);
+    }).join("");
+  }
+  function flagHTML(c, cls) {
+    var code = iso(c.fl);
+    if (!code) return '<span class="' + cls + ' flag--emoji" aria-hidden="true">' + c.fl + "</span>";
+    return '<img class="' + cls + '" src="https://flagcdn.com/w80/' + code + '.png"' +
+      ' srcset="https://flagcdn.com/w160/' + code + '.png 2x"' +
+      ' width="40" height="30" loading="lazy" decoding="async" alt=""' +
+      ' onerror="this.outerHTML=&quot;<span class=\\&quot;' + cls + ' flag--emoji\\&quot;>' + c.fl + '</span>&quot;">';
+  }
+
+  /* ---------- índice de búsqueda (por idioma) ---------- */
+  function buildIndex() {
+    C.forEach(function (c) {
+      var parts = [c.n, c.en, name(c), c.rg, c.lang, c.scr, c.dom, c.side, c.cov,
+        enumT("rg", c.rg), enumT("side", c.side), enumT("cov", c.cov)];
+      ["plate", "tldr", "cars", "flora", "fauna"].forEach(function (f) { parts.push(tc(c, f)); });
+      parts.push((tc(c, "quick") || []).join(" "));
+      ["car", "bol", "pol", "road", "sign", "arch", "nat", "extra"].forEach(function (k) {
+        parts.push(tcm(c, k));
+      });
+      (tc(c, "rgs") || []).forEach(function (r) { parts.push(r.n + " " + r.t); });
+      (tc(c, "cf") || []).forEach(function (r) { parts.push(r.n + " " + r.t); });
+      c._q = norm(strip(parts.join(" ")));
+    });
+    C.sort(function (a, b) { return name(a).localeCompare(name(b), LANG); });
+  }
 
   /* ---------- estado ---------- */
   var state = { q: "", rg: "all", dif: "all", side: "all" };
   var view = C.slice();
 
-  /* ---------- elementos ---------- */
   var elGrid = $("#grid"), elCount = $("#count"), elSearch = $("#q"),
       elScrim = $("#scrim"), elPanel = $("#panel"), elPanelBd = $("#panelBody"),
       elPanelHd = $("#panelHead"), elTop = $("#totop");
 
-  /* ---------- filtros ---------- */
   function apply() {
-    /* busca por tokens: todas as palavras precisam aparecer, em qualquer ordem */
     var terms = norm(state.q).split(/\s+/).filter(Boolean);
     view = C.filter(function (c) {
       if (state.rg !== "all" && c.rg !== state.rg) return false;
@@ -65,146 +115,119 @@
       if (state.dif === "mid" && c.dif !== 3) return false;
       if (state.dif === "hard" && c.dif < 4) return false;
       if (state.side !== "all" && c.side !== state.side) return false;
-      for (var i = 0; i < terms.length; i++) {
-        if (c._q.indexOf(terms[i]) === -1) return false;
-      }
+      for (var i = 0; i < terms.length; i++) if (c._q.indexOf(terms[i]) === -1) return false;
       return true;
     });
     renderGrid();
   }
 
   function renderGrid() {
-    elCount.textContent = view.length + (view.length === 1 ? " país" : " países");
+    elCount.textContent = view.length + " " + (view.length === 1 ? t("countOne") : t("countMany"));
     if (!view.length) {
-      elGrid.innerHTML = '<div class="empty"><b>Nenhum resultado</b>Tente outro termo ou limpe os filtros.</div>';
+      elGrid.innerHTML = '<div class="empty"><b>' + t("emptyTitle") + "</b>" + t("emptyBody") + "</div>";
       return;
     }
-    var html = view.map(function (c) {
+    elGrid.innerHTML = view.map(function (c) {
       var dots = "";
       for (var i = 1; i <= 5; i++) dots += '<i class="' + (i <= c.dif ? "on" : "") + '"></i>';
-      return '' +
-        '<button class="card" data-id="' + c.id + '" type="button">' +
-          '<span class="card__top">' +
-            '<span class="card__fl" aria-hidden="true">' + c.fl + '</span>' +
-            '<span>' +
-              '<span class="card__nm">' + c.n + '</span>' +
-              '<span class="card__en">' + c.en + '</span>' +
-            '</span>' +
-          '</span>' +
-          '<span class="card__tl">' + c.tldr + '</span>' +
-          '<span class="card__ft">' +
-            '<span class="tag tag--rg">' + c.rg + '</span>' +
-            '<span class="tag tag--sd">' + c.side + '</span>' +
-            (c.cov !== "Completa" ? '<span class="tag tag--pt">' + c.cov + '</span>' : '') +
-            '<span class="dots" title="Dificuldade: ' + DIF_LABEL[c.dif] + '">' + dots + '</span>' +
-          '</span>' +
-        '</button>';
+      return '<button class="card" data-id="' + c.id + '" type="button">' +
+        '<span class="card__top">' + flagHTML(c, "card__fl") +
+          '<span><span class="card__nm">' + name(c) + '</span>' +
+          '<span class="card__en">' + (LANG === "en" ? c.n : c.en) + "</span></span>" +
+        "</span>" +
+        '<span class="card__tl">' + tc(c, "tldr") + "</span>" +
+        '<span class="card__ft">' +
+          '<span class="tag tag--rg">' + enumT("rg", c.rg) + "</span>" +
+          '<span class="tag tag--sd">' + enumT("side", c.side) + "</span>" +
+          (c.cov !== "Completa" ? '<span class="tag tag--pt">' + enumT("cov", c.cov) + "</span>" : "") +
+          '<span class="dots" title="' + t("difficulty") + ": " + difLabel(c.dif) + '">' + dots + "</span>" +
+        "</span></button>";
     }).join("");
-    elGrid.innerHTML = html;
   }
 
-  /* ---------- painel de detalhe ---------- */
+  /* ---------- panel ---------- */
   var current = -1;
 
+  function fact(k, v) { return v ? '<div class="fact"><dt>' + k + "</dt><dd>" + v + "</dd></div>" : ""; }
+  function rows(list) {
+    return list.map(function (r) {
+      return '<div class="mrow"><dt>' + r[0] + '<span>' + r[1] + "</span></dt><dd>" + r[2] + "</dd></div>";
+    }).join("");
+  }
+
   function openCountry(id, push) {
-    var idx = C.findIndex(function (c) { return c.id === id; });
+    var idx = -1;
+    for (var i = 0; i < C.length; i++) if (C[i].id === id) { idx = i; break; }
     if (idx < 0) return;
     current = idx;
     var c = C[idx];
 
-    elPanelHd.innerHTML =
-      '<span class="panel__fl" aria-hidden="true">' + c.fl + '</span>' +
-      '<span class="panel__hh">' +
-        '<h3 id="panelTitle">' + c.n + '</h3>' +
-        '<span class="sub">' + c.en + ' · ' + c.rg + ' · Dificuldade: ' + DIF_LABEL[c.dif] + '</span>' +
-      '</span>' +
-      '<button class="panel__x" id="panelClose" type="button" aria-label="Fechar">✕</button>';
+    elPanelHd.innerHTML = flagHTML(c, "panel__fl") +
+      '<span class="panel__hh"><h3 id="panelTitle">' + name(c) + "</h3>" +
+      '<span class="sub">' + (LANG === "en" ? c.n : c.en) + " · " + enumT("rg", c.rg) +
+      " · " + t("difficulty") + ": " + difLabel(c.dif) + "</span></span>" +
+      '<button class="panel__x" id="panelClose" type="button" aria-label="' + t("closeLabel") + '">✕</button>';
 
-    var m = c.m || {};
-    var metaRows = [
-      ["Carro Google", "captura", m.car],
-      ["Delineadores", "bollards", m.bol],
-      ["Postes", "energia", m.pol],
-      ["Solo", "marcação", m.road],
-      ["Sinalização", "placas", m.sign],
-      ["Arquitetura", "construções", m.arch],
-      ["Natureza", "vegetação", m.nat],
-      ["Extra", "detalhe fino", m.extra]
-    ].filter(function (r) { return r[2]; });
+    var html = '<p class="tldr">' + tc(c, "tldr") + "</p>";
 
-    var html = '<p class="tldr">' + c.tldr + '</p>';
-
-    if (c.quick && c.quick.length) {
-      html += '<section class="blk"><h4 class="blk__t">Identificação rápida</h4><ol class="qlist">' +
-        c.quick.map(function (q) { return "<li><span>" + q + "</span></li>"; }).join("") +
-        "</ol></section>";
+    var quick = tc(c, "quick") || [];
+    if (quick.length) {
+      html += '<section class="blk"><h4 class="blk__t">' + t("bQuick") + '</h4><ol class="qlist">' +
+        quick.map(function (q) { return "<li><span>" + q + "</span></li>"; }).join("") + "</ol></section>";
     }
 
-    html += '<section class="blk"><h4 class="blk__t">Ficha</h4><dl class="facts">' +
-      fact("Direção", c.side) +
-      fact("Idioma", c.lang) +
-      fact("Escrita", c.scr) +
-      fact("Domínio", c.dom) +
-      fact("Cobertura", c.cov) +
-      fact("Placa do veículo", c.plate) +
-      "</dl></section>";
+    html += '<section class="blk"><h4 class="blk__t">' + t("bFacts") + '</h4><dl class="facts">' +
+      fact(t("fSide"), enumT("side", c.side)) + fact(t("fLang"), c.lang) +
+      fact(t("fScript"), c.scr) + fact(t("fDom"), c.dom) +
+      fact(t("fCov"), enumT("cov", c.cov)) + fact(t("fPlate"), tc(c, "plate")) + "</dl></section>";
 
-    if (metaRows.length) {
-      html += '<section class="blk"><h4 class="blk__t">Metas detalhadas</h4><dl class="meta">' +
-        metaRows.map(function (r) {
-          return '<div class="mrow"><dt>' + r[0] + '<span>' + r[1] + '</span></dt><dd>' + r[2] + "</dd></div>";
-        }).join("") + "</dl></section>";
+    var meta = [["mCar", "mCarS", "car"], ["mBol", "mBolS", "bol"], ["mPol", "mPolS", "pol"],
+      ["mRoad", "mRoadS", "road"], ["mSign", "mSignS", "sign"], ["mArch", "mArchS", "arch"],
+      ["mNat", "mNatS", "nat"], ["mExtra", "mExtraS", "extra"]]
+      .map(function (r) { return [t(r[0]), t(r[1]), tcm(c, r[2])]; })
+      .filter(function (r) { return r[2]; });
+    if (meta.length) {
+      html += '<section class="blk"><h4 class="blk__t">' + t("bMeta") + '</h4><dl class="meta">' +
+        rows(meta) + "</dl></section>";
     }
 
-    var vivas = [
-      ["Frota", "carros e transporte", c.cars],
-      ["Flora", "vegetação indicadora", c.flora],
-      ["Fauna", "animais visíveis", c.fauna]
-    ].filter(function (r) { return r[2]; });
-
-    if (vivas.length) {
-      html += '<section class="blk blk--live"><h4 class="blk__t">Pistas vivas</h4><dl class="meta">' +
-        vivas.map(function (r) {
-          return '<div class="mrow"><dt>' + r[0] + '<span>' + r[1] + '</span></dt><dd>' + r[2] + "</dd></div>";
-        }).join("") + "</dl></section>";
+    var live = [[t("vCars"), t("vCarsS"), tc(c, "cars")], [t("vFlora"), t("vFloraS"), tc(c, "flora")],
+      [t("vFauna"), t("vFaunaS"), tc(c, "fauna")]].filter(function (r) { return r[2]; });
+    if (live.length) {
+      html += '<section class="blk blk--live"><h4 class="blk__t">' + t("bLive") + '</h4><dl class="meta">' +
+        rows(live) + "</dl></section>";
     }
 
-    if (c.rgs && c.rgs.length) {
-      html += '<section class="blk"><h4 class="blk__t">Divisão regional</h4><div class="rlist">' +
-        c.rgs.map(function (r) { return '<div class="ritem"><b>' + r.n + "</b><span>" + r.t + "</span></div>"; }).join("") +
+    var rgs = tc(c, "rgs") || [];
+    if (rgs.length) {
+      html += '<section class="blk"><h4 class="blk__t">' + t("bRegions") + '</h4><div class="rlist">' +
+        rgs.map(function (r) { return '<div class="ritem"><b>' + r.n + "</b><span>" + r.t + "</span></div>"; }).join("") +
         "</div></section>";
     }
 
-    if (c.cf && c.cf.length) {
-      html += '<section class="blk"><h4 class="blk__t">Confusões comuns</h4><div class="clist">' +
-        c.cf.map(function (r) { return '<div class="citem"><b>' + r.n + "</b><span>" + r.t + "</span></div>"; }).join("") +
+    var cf = tc(c, "cf") || [];
+    if (cf.length) {
+      html += '<section class="blk"><h4 class="blk__t">' + t("bConfuse") + '</h4><div class="clist">' +
+        cf.map(function (r) { return '<div class="citem"><b>' + r.n + "</b><span>" + r.t + "</span></div>"; }).join("") +
         "</div></section>";
     }
 
     var prev = C[(idx - 1 + C.length) % C.length], next = C[(idx + 1) % C.length];
     html += '<nav class="panel__nav">' +
-      '<button class="pnav" type="button" data-go="' + prev.id + '"><small>← Anterior</small>' + prev.fl + " " + prev.n + "</button>" +
-      '<button class="pnav r" type="button" data-go="' + next.id + '"><small>Próximo →</small>' + next.fl + " " + next.n + "</button>" +
+      '<button class="pnav" type="button" data-go="' + prev.id + '"><small>' + t("prev") + "</small>" + name(prev) + "</button>" +
+      '<button class="pnav r" type="button" data-go="' + next.id + '"><small>' + t("next") + "</small>" + name(next) + "</button>" +
       "</nav>";
 
     elPanelBd.innerHTML = html;
     elPanelBd.scrollTop = 0;
-
     elPanel.classList.add("on");
     elScrim.classList.add("on");
     elPanel.setAttribute("aria-hidden", "false");
     document.body.classList.add("is-locked");
-    $("#panelClose").focus();
+    var x = $("#panelClose"); if (x) x.focus();
 
-    if (push !== false && location.hash !== "#/" + c.id) {
-      history.pushState({ id: c.id }, "", "#/" + c.id);
-    }
-    document.title = c.n + " — Atlas de Metas do GeoGuessr";
-  }
-
-  function fact(k, v) {
-    if (!v) return "";
-    return '<div class="fact"><dt>' + k + "</dt><dd>" + v + "</dd></div>";
+    if (push !== false && location.hash !== "#/" + c.id) history.pushState({ id: c.id }, "", "#/" + c.id);
+    document.title = name(c) + " — " + t("title");
   }
 
   function closePanel(push) {
@@ -213,35 +236,68 @@
     elPanel.setAttribute("aria-hidden", "true");
     document.body.classList.remove("is-locked");
     current = -1;
-    document.title = "Atlas de Metas do GeoGuessr";
+    document.title = t("title");
     if (push !== false && location.hash) history.pushState(null, "", location.pathname + location.search);
   }
 
-  /* ---------- guias ---------- */
+  /* ---------- guías ---------- */
+  function guideT(g) {
+    var tr = window.GG.guidesTr && GG.guidesTr[LANG] && GG.guidesTr[LANG][g.id];
+    return tr || {};
+  }
   function renderGuides() {
     var el = $("#guides");
     if (!el) return;
     el.innerHTML = GUIDES.map(function (g) {
-      return '' +
-        '<article class="gcard" data-g="' + g.id + '">' +
-          '<button class="gcard__b" type="button" aria-expanded="false">' +
-            '<span class="gcard__ic" aria-hidden="true">' + g.ic + '</span>' +
-            '<span><span class="gcard__t">' + g.t + '</span><span class="gcard__s">' + g.sub + '</span></span>' +
-            '<span class="gcard__x" aria-hidden="true">＋</span>' +
-          '</button>' +
-          '<div class="gcard__body">' +
-            '<p class="gcard__intro">' + g.intro + '</p>' +
-            g.items.map(function (i) {
-              return '<div class="gitem"><b>' + i.n + "</b><span>" + i.t + "</span></div>";
-            }).join("") +
-          '</div>' +
-        '</article>';
+      var x = guideT(g);
+      var items = x.items || g.items;
+      return '<article class="gcard" data-g="' + g.id + '">' +
+        '<button class="gcard__b" type="button" aria-expanded="false">' +
+          '<span class="gcard__ic" aria-hidden="true">' + g.ic + "</span>" +
+          '<span><span class="gcard__t">' + (x.t || g.t) + '</span>' +
+          '<span class="gcard__s">' + (x.sub || g.sub) + "</span></span>" +
+          '<span class="gcard__x" aria-hidden="true">＋</span></button>' +
+        '<div class="gcard__body"><p class="gcard__intro">' + (x.intro || g.intro) + "</p>" +
+          items.map(function (i) { return '<div class="gitem"><b>' + i.n + "</b><span>" + i.t + "</span></div>"; }).join("") +
+        "</div></article>";
     }).join("");
+  }
+
+  /* ---------- textos estáticos ---------- */
+  function applyUI() {
+    var d = UI[LANG] || {};
+    document.documentElement.lang = d.htmlLang || LANG;
+    $$("[data-i18n]").forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+    $$("[data-i18n-html]").forEach(function (el) { el.innerHTML = t(el.dataset.i18nHtml); });
+    $$("[data-i18n-ph]").forEach(function (el) { el.placeholder = t(el.dataset.i18nPh); });
+    $$("[data-i18n-aria]").forEach(function (el) { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+    var md = $('meta[name="description"]'); if (md) md.content = t("metaDesc");
+    document.title = t("title");
+    $$(".langbtn").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.dataset.lang === LANG ? "true" : "false");
+    });
+  }
+
+  function setLang(code) {
+    if (!UI[code] || code === LANG) return;
+    LANG = code;
+    try { localStorage.setItem("atlas-lang", code); } catch (e) {}
+    buildIndex();
+    applyUI();
+    buildFilters();
+    renderGuides();
+    stats();
+    apply();
+    if (current >= 0) openCountry(C[current] ? C[current].id : "", false);
   }
 
   /* ---------- eventos ---------- */
   document.addEventListener("click", function (e) {
     if (!e.target || !e.target.closest) return;
+
+    var lb = e.target.closest(".langbtn");
+    if (lb) { setLang(lb.dataset.lang); return; }
+
     var card = e.target.closest(".card");
     if (card) { openCountry(card.dataset.id); return; }
 
@@ -253,16 +309,15 @@
 
     var gb = e.target.closest(".gcard__b");
     if (gb) {
-      var card2 = gb.closest(".gcard");
-      var open = card2.classList.toggle("open");
+      var open = gb.closest(".gcard").classList.toggle("open");
       gb.setAttribute("aria-expanded", open ? "true" : "false");
       return;
     }
 
     var chip = e.target.closest(".chip");
     if (chip) {
-      var key = chip.dataset.k, val = chip.dataset.v;
-      state[key] = val;
+      var key = chip.dataset.k;
+      state[key] = chip.dataset.v;
       $$('.chip[data-k="' + key + '"]').forEach(function (b) {
         b.setAttribute("aria-pressed", b === chip ? "true" : "false");
       });
@@ -270,9 +325,7 @@
       return;
     }
 
-    if (e.target.closest("#totop")) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    if (e.target.closest("#totop")) window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
   elSearch.addEventListener("input", function () {
@@ -280,7 +333,6 @@
     elSearch.parentNode.classList.toggle("has-val", !!elSearch.value);
     apply();
   });
-
   $("#clearQ").addEventListener("click", function () {
     elSearch.value = ""; state.q = "";
     elSearch.parentNode.classList.remove("has-val");
@@ -304,7 +356,6 @@
   });
 
   window.addEventListener("popstate", function () { route(false); });
-
   window.addEventListener("scroll", function () {
     elTop.classList.toggle("on", window.scrollY > 700);
   }, { passive: true });
@@ -312,56 +363,63 @@
   /* ---------- tema ---------- */
   var themeBtn = $("#theme");
   function currentTheme() {
-    var set = document.documentElement.getAttribute("data-theme");
-    if (set) return set;
+    var s = document.documentElement.getAttribute("data-theme");
+    if (s) return s;
     return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
   }
   function paintThemeBtn() { themeBtn.textContent = currentTheme() === "dark" ? "☀" : "☾"; }
   themeBtn.addEventListener("click", function () {
     var next = currentTheme() === "dark" ? "light" : "dark";
     document.documentElement.setAttribute("data-theme", next);
-    try { localStorage.setItem("atlas-theme", next); } catch (err) {}
+    try { localStorage.setItem("atlas-theme", next); } catch (e) {}
     paintThemeBtn();
   });
 
-  /* ---------- rota por hash ---------- */
   function route(push) {
     var m = /^#\/(.+)$/.exec(location.hash || "");
     if (m) {
       var id = decodeURIComponent(m[1]);
-      if (C.some(function (c) { return c.id === id; })) { openCountry(id, push); return; }
+      for (var i = 0; i < C.length; i++) if (C[i].id === id) { openCountry(id, push); return; }
     }
     if (elPanel.classList.contains("on")) closePanel(false);
   }
 
-  /* ---------- estatísticas do hero ---------- */
   function stats() {
     var byRg = {};
     C.forEach(function (c) { byRg[c.rg] = (byRg[c.rg] || 0) + 1; });
-    var set = $("#statCountries");
-    if (set) set.textContent = C.length;
-    var g = $("#statGuides");
-    if (g) g.textContent = GUIDES.length;
-    var left = C.filter(function (c) { return c.side === "Esquerda"; }).length;
-    var l = $("#statLeft");
-    if (l) l.textContent = left;
-    var reg = $("#statRegions");
-    if (reg) reg.textContent = Object.keys(byRg).length;
+    var set = function (id, v) { var e = $(id); if (e) e.textContent = v; };
+    set("#statCountries", C.length);
+    set("#statGuides", GUIDES.length);
+    set("#statLeft", C.filter(function (c) { return c.side === "Esquerda"; }).length);
+    set("#statRegions", Object.keys(byRg).length);
   }
 
-  /* ---------- filtros dinâmicos ---------- */
+  var REGIONS = ["Europa", "Ásia", "África", "Américas", "Oceania"];
   function buildFilters() {
-    var box = $("#fRegion");
-    box.innerHTML = '<button class="chip" data-k="rg" data-v="all" aria-pressed="true">Todas</button>' +
+    $("#fRegion").innerHTML =
+      '<button class="chip" data-k="rg" data-v="all" aria-pressed="' + (state.rg === "all") + '">' + t("fAll") + "</button>" +
       REGIONS.filter(function (r) { return C.some(function (c) { return c.rg === r; }); })
         .map(function (r) {
           var n = C.filter(function (c) { return c.rg === r; }).length;
-          return '<button class="chip" data-k="rg" data-v="' + r + '" aria-pressed="false">' + r + " <span style=\"opacity:.6\">" + n + "</span></button>";
+          return '<button class="chip" data-k="rg" data-v="' + r + '" aria-pressed="' + (state.rg === r) +
+            '">' + enumT("rg", r) + ' <span style="opacity:.6">' + n + "</span></button>";
         }).join("");
+  }
+
+  function buildLangSwitch() {
+    var box = $("#langSwitch");
+    if (!box) return;
+    box.innerHTML = LANGS.map(function (l) {
+      return '<button class="langbtn" type="button" data-lang="' + l.code + '" title="' + l.label +
+        '" aria-pressed="' + (l.code === LANG) + '">' + l.short + "</button>";
+    }).join("");
   }
 
   /* ---------- init ---------- */
   paintThemeBtn();
+  buildLangSwitch();
+  buildIndex();
+  applyUI();
   buildFilters();
   renderGuides();
   stats();
