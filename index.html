@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Atlas de Metas do GeoGuessr</title>
+<meta name="description" content="Guia completo de metas do GeoGuessr, país por país: placas, postes, delineadores, marcação de solo, escrita, arquitetura e vegetação.">
+<meta name="color-scheme" content="dark light">
+<link rel="stylesheet" href="assets/css/style.css?v=6">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧭</text></svg>">
+<script>
+  (function(){try{var t=localStorage.getItem('atlas-theme');if(t)document.documentElement.setAttribute('data-theme',t);}catch(e){}})();
+</script>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="#topo">
+      <span class="brand__mk" aria-hidden="true"></span>
+      <span>Atlas<small>Metas do GeoGuessr</small></span>
+    </a>
+    <nav class="navlinks" aria-label="Seções">
+      <a href="#paises">Países</a>
+      <a href="#metas">Metas globais</a>
+      <a href="#metodo">Método</a>
+    </nav>
+    <button class="iconbtn" id="theme" type="button" aria-label="Alternar tema claro e escuro" title="Alternar tema">☀</button>
+  </div>
+</header>
+
+<main id="topo">
+
+  <section class="hero">
+    <div class="wrap hero__in">
+      <span class="eyebrow">Guia completo · Street View</span>
+      <h1>Todo país com cobertura, <em>e o detalhe que o entrega</em>.</h1>
+      <p class="hero__lead">
+        Um guia de referência para reconhecer qualquer lugar do mundo pela paisagem, pela
+        infraestrutura e pela escrita. Cada país traz identificação rápida, ficha técnica,
+        metas detalhadas, divisão regional e as confusões mais comuns com os vizinhos.
+      </p>
+      <div class="stats">
+        <div class="stat"><b id="statCountries">—</b><span>Países e territórios</span></div>
+        <div class="stat"><b id="statRegions">—</b><span>Regiões do mundo</span></div>
+        <div class="stat"><b id="statLeft">—</b><span>Dirigem pela esquerda</span></div>
+        <div class="stat"><b id="statGuides">—</b><span>Guias transversais</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="paises" style="padding-top:8px">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="sechead__k">Referência</div>
+        <h2>Guia por país</h2>
+        <p>Busque por nome, idioma, escrita ou por qualquer detalhe descrito nas fichas — por exemplo <b>“bollard laranja”</b>, <b>“placa amarela”</b> ou <b>“eucalipto”</b>. Clique em um país para abrir o guia completo.</p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="wrap">
+        <div class="search">
+          <span class="search__ic" aria-hidden="true">⌕</span>
+          <label class="sr-only" for="q" style="position:absolute;left:-9999px">Buscar país</label>
+          <input id="q" type="search" placeholder="Buscar país, idioma, escrita ou meta…  (tecle / para focar)" autocomplete="off" spellcheck="false">
+          <button class="search__x" id="clearQ" type="button" aria-label="Limpar busca">✕</button>
+        </div>
+        <div class="filters">
+          <div class="fgroup" id="fRegion"></div>
+          <div class="fgroup">
+            <button class="chip" data-k="side" data-v="all" aria-pressed="true">Ambos os lados</button>
+            <button class="chip" data-k="side" data-v="Direita" aria-pressed="false">Direita</button>
+            <button class="chip" data-k="side" data-v="Esquerda" aria-pressed="false">Esquerda</button>
+          </div>
+          <div class="fgroup">
+            <button class="chip" data-k="dif" data-v="all" aria-pressed="true">Qualquer nível</button>
+            <button class="chip" data-k="dif" data-v="easy" aria-pressed="false">Fácil</button>
+            <button class="chip" data-k="dif" data-v="mid" aria-pressed="false">Médio</button>
+            <button class="chip" data-k="dif" data-v="hard" aria-pressed="false">Difícil</button>
+          </div>
+          <span class="count" id="count">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <div class="grid" id="grid"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="metas">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="sechead__k">Transversal</div>
+        <h2>Metas globais</h2>
+        <p>Padrões que atravessam fronteiras e valem para o mundo inteiro. Aprender estes blocos rende mais do que decorar país por país, porque eles funcionam mesmo quando não há nenhum texto legível na tela.</p>
+      </div>
+      <div class="gcards" id="guides"></div>
+    </div>
+  </section>
+
+  <section class="sec" id="metodo">
+    <div class="wrap">
+      <div class="sechead">
+        <div class="sechead__k">Como usar</div>
+        <h2>Método de treino</h2>
+        <p>Sugestão de rotina para transformar este guia em acerto consistente.</p>
+      </div>
+      <div class="gcards">
+        <article class="gcard">
+          <div style="padding:18px">
+            <div class="gcard__t" style="margin-bottom:8px">1. Aprenda em blocos, não em listas</div>
+            <p style="color:var(--txt-2);font-size:.9rem;margin:0">
+              Comece pelas metas globais: lado da direção, cor da linha central, tipo de poste e escrita.
+              Esses quatro filtros sozinhos resolvem a maioria das rodadas até o nível de país.
+              Só depois vá para os detalhes de cada território.
+            </p>
+          </div>
+        </article>
+        <article class="gcard">
+          <div style="padding:18px">
+            <div class="gcard__t" style="margin-bottom:8px">2. Estude os pares que confundem</div>
+            <p style="color:var(--txt-2);font-size:.9rem;margin:0">
+              Cada ficha tem a seção <b>Confusões comuns</b>. Chéquia e Eslováquia, Letônia e Lituânia,
+              Argentina e Uruguai, Malásia e Indonésia, Quênia e Uganda. Aprender o par junto é mais
+              eficiente do que aprender cada país isolado.
+            </p>
+          </div>
+        </article>
+        <article class="gcard">
+          <div style="padding:18px">
+            <div class="gcard__t" style="margin-bottom:8px">3. Force a leitura antes de chutar</div>
+            <p style="color:var(--txt-2);font-size:.9rem;margin:0">
+              Em partidas sem tempo, obrigue-se a percorrer a rotina completa antes de marcar o palpite.
+              A intuição vem depois da rotina, não antes dela. Quando errar, volte à ficha do país certo
+              e procure qual pista estava visível e você deixou passar.
+            </p>
+          </div>
+        </article>
+        <article class="gcard">
+          <div style="padding:18px">
+            <div class="gcard__t" style="margin-bottom:8px">4. Priorize por frequência</div>
+            <p style="color:var(--txt-2);font-size:.9rem;margin:0">
+              Nem todo país aparece com a mesma frequência. Estados Unidos, Brasil, Rússia, Japão,
+              França, Alemanha, Austrália, Índia e África do Sul concentram uma fatia enorme da
+              cobertura mundial. Domine esses primeiro e depois expanda para os vizinhos difíceis.
+            </p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p class="note">
+      <b>Sobre a precisão.</b> As metas mudam com o tempo: o Google refotografa países periodicamente,
+      e detalhes como o veículo de captura, a qualidade da imagem e até a sinalização podem ter mudado
+      desde a última cobertura. Trate as pistas de infraestrutura e escrita como as mais estáveis, e as
+      pistas de câmera e veículo como as mais voláteis.
+    </p>
+    <div class="foot__in">
+      <p>
+        <b>Atlas de Metas do GeoGuessr</b> — guia de referência em português para reconhecimento
+        geográfico por imagem. Conteúdo organizado para estudo e consulta rápida.
+      </p>
+      <p style="text-align:right">
+        Atalhos: <b>/</b> busca · <b>←</b> <b>→</b> navega entre países · <b>Esc</b> fecha
+      </p>
+    </div>
+  </div>
+</footer>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="panelTitle">
+  <div class="panel__hd" id="panelHead"></div>
+  <div class="panel__bd" id="panelBody"></div>
+</aside>
+
+<button class="totop" id="totop" type="button" aria-label="Voltar ao topo">↑</button>
+
+<script src="assets/js/data-europe.js?v=6"></script>
+<script src="assets/js/data-asia.js?v=6"></script>
+<script src="assets/js/data-africa.js?v=6"></script>
+<script src="assets/js/data-americas.js?v=6"></script>
+<script src="assets/js/data-oceania.js?v=6"></script>
+<script src="assets/js/data-extra.js?v=6"></script>
+<script src="assets/js/guides.js?v=6"></script>
+<script src="assets/js/app.js?v=6"></script>
+</body>
+</html>
