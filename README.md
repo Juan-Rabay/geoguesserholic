@@ -80,4 +80,15 @@ vehículo de captura, la calidad de imagen y la señalización pueden haber camb
 desde la última cobertura. Las pistas de **infraestructura y escritura** son las
 más estables; las de **cámara y vehículo**, las más volátiles.
 
-Créditos de banderas: [flagcdn.com](https://flagcdn.com).
+## Imágenes
+
+Las 13 fotos ilustrativas de las guías vienen de Wikimedia Commons, todas con
+licencia libre. **Cada una fue revisada visualmente** antes de aceptarla: la
+selección automática por categoría devuelve muchas piezas históricas o de
+colección que se ven plausibles pero enseñan mal (patentes de 1949, matrículas
+fotografiadas en otro país). El script de recolección está en el historial de
+trabajo; el resultado verificado vive en `assets/js/guide-images.js`.
+
+Créditos: banderas de [flagcdn.com](https://flagcdn.com); fotos de
+[Wikimedia Commons](https://commons.wikimedia.org), con autor y licencia
+indicados bajo cada imagen.
