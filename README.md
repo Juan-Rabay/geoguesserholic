@@ -82,12 +82,23 @@ más estables; las de **cámara y vehículo**, las más volátiles.
 
 ## Imágenes
 
-Las 13 fotos ilustrativas de las guías vienen de Wikimedia Commons, todas con
-licencia libre. **Cada una fue revisada visualmente** antes de aceptarla: la
-selección automática por categoría devuelve muchas piezas históricas o de
-colección que se ven plausibles pero enseñan mal (patentes de 1949, matrículas
-fotografiadas en otro país). El script de recolección está en el historial de
-trabajo; el resultado verificado vive en `assets/js/guide-images.js`.
+Todas vienen de Wikimedia Commons con licencia libre, y **cada una fue revisada
+visualmente** antes de aceptarla.
+
+- **13 fotos ilustrativas** en las guías transversales (`guide-images.js`):
+  bolardos, postes, flota, vegetación y fauna.
+- **68 patentes** en las fichas de país (`plate-images.js`), de 111 posibles.
+
+La revisión visual no es un lujo: la selección automática por categoría devuelve
+material que se ve plausible pero enseña mal. Entre lo descartado hubo placas de
+**Carabineros de Chile**, del **cuerpo diplomático peruano**, de la **ocupación
+japonesa de 1949**, matrículas europeas fotografiadas **en Bielorrusia**, un
+**granero canadiense forrado de placas**, una placa de un **club de
+coleccionistas** estadounidense, un **mapa de Canadá** y varios diagramas.
+
+Los 43 países sin patente quedaron así a propósito: o su categoría en Commons
+no existe con los nombres probados, o todo lo disponible contradecía lo que dice
+la ficha. Es preferible no mostrar imagen a mostrar una que enseñe algo falso.
 
 Créditos: banderas de [flagcdn.com](https://flagcdn.com); fotos de
 [Wikimedia Commons](https://commons.wikimedia.org), con autor y licencia
