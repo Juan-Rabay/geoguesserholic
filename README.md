@@ -85,20 +85,27 @@ más estables; las de **cámara y vehículo**, las más volátiles.
 Todas vienen de Wikimedia Commons con licencia libre, y **cada una fue revisada
 visualmente** antes de aceptarla.
 
-- **13 fotos ilustrativas** en las guías transversales (`guide-images.js`):
-  bolardos, postes, flota, vegetación y fauna.
-- **89 patentes** en las fichas de país (`plate-images.js`), de 111 posibles.
+- **13 fotos ilustrativas** en las guías transversales (`guide-images.js`)
+- **89 patentes** en las fichas de país (`plate-images.js`)
+- **52 fotos específicas** —49 de postes eléctricos y 3 de balizadores— en las
+  fichas (`country-shots.js`)
 
-La revisión visual no es un lujo: la selección automática por categoría devuelve
-material que se ve plausible pero enseña mal. Entre lo descartado hubo placas de
-**Carabineros de Chile**, del **cuerpo diplomático peruano**, de la **ocupación
-japonesa de 1949**, matrículas europeas fotografiadas **en Bielorrusia**, un
-**granero canadiense forrado de placas**, una placa de un **club de
-coleccionistas** estadounidense, un **mapa de Canadá** y varios diagramas.
+**97 de los 111 países** tienen al menos una imagen.
 
-Los 22 países sin patente quedaron así a propósito: o su categoría en Commons
-no existe con los nombres probados, o todo lo disponible contradecía lo que dice
-la ficha. Es preferible no mostrar imagen a mostrar una que enseñe algo falso.
+La revisión visual no es un lujo. La selección automática por categoría o
+búsqueda devuelve material que se ve plausible pero enseña mal. Entre lo
+descartado hubo placas de **Carabineros de Chile**, del **cuerpo diplomático**
+peruano y boliviano, de la **ocupación japonesa de 1949**, una placa de **Togo**
+asignada a Egipto, una de **Alpes-Maritimes** asignada a Reunión, matrículas
+europeas fotografiadas **en Bielorrusia**, un **collage turístico de Malta**
+devuelto para Sudáfrica, una matrícula **en árabe** devuelta para España, un
+**granero canadiense forrado de placas**, una **maqueta a escala** para Taiwán,
+la **portada de un informe de 1980** para Estados Unidos y una **foto de combate
+de la Guerra de Corea** para Corea del Sur.
+
+Los 14 países sin ninguna imagen quedaron así a propósito: o no existe categoría
+en Commons, o todo lo disponible contradecía lo que dice la ficha. Es preferible
+no mostrar imagen a mostrar una que enseñe algo falso.
 
 Créditos: banderas de [flagcdn.com](https://flagcdn.com); fotos de
 [Wikimedia Commons](https://commons.wikimedia.org), con autor y licencia
