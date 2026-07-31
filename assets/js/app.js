@@ -150,6 +150,21 @@
 
   function fact(k, v) { return v ? '<div class="fact"><dt>' + k + "</dt><dd>" + v + "</dd></div>" : ""; }
 
+  /* fotos específicas del país: postes y balizadores */
+  function countryShots(id) {
+    var list = (window.GG.countryShots || {})[id];
+    if (!list || !list.length) return "";
+    return '<div class="gshots gshots--in">' + list.map(function (im) {
+      var cap = im[LANG] || im.pt || "";
+      return '<figure class="gshot">' +
+        '<img src="' + im.url + '" alt="' + cap.split('"').join("&quot;") +
+        '" loading="lazy" decoding="async">' +
+        "<figcaption>" + cap +
+        '<a class="gshot__by" href="' + im.page + '" target="_blank" rel="noopener">' +
+        im.by + " · " + im.lic + "</a></figcaption></figure>";
+    }).join("") + "</div>";
+  }
+
   /* foto de la patente del país, cuando hay una verificada */
   function plateShot(id) {
     var p = (window.GG.plateImages || {})[id];
@@ -201,7 +216,7 @@
       .filter(function (r) { return r[2]; });
     if (meta.length) {
       html += '<section class="blk"><h4 class="blk__t">' + t("bMeta") + '</h4><dl class="meta">' +
-        rows(meta) + "</dl></section>";
+        rows(meta) + "</dl>" + countryShots(c.id) + "</section>";
     }
 
     var live = [[t("vCars"), t("vCarsS"), tc(c, "cars")], [t("vFlora"), t("vFloraS"), tc(c, "flora")],
