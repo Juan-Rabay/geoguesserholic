@@ -462,3 +462,10 @@ b, strong { color: var(--txt); font-weight: 650; }
   .nav, .controls, .totop, .panel, .scrim { display: none !important; }
   body { background: #fff; color: #000; }
 }
+
+/* foto de patente dentro de la ficha del país */
+.plate { margin: 12px 0 0; background: var(--surface); border: 1px solid var(--hair-soft); border-radius: var(--radius-sm); overflow: hidden; }
+.plate img { display: block; width: 100%; max-height: 190px; object-fit: contain; background: var(--surface-2); padding: 10px; }
+.plate figcaption { padding: 9px 12px 10px; font-size: .8rem; line-height: 1.45; color: var(--txt-2); border-top: 1px solid var(--hair-soft); }
+.plate__by { display: block; margin-top: 3px; font-size: .68rem; color: var(--txt-3); text-decoration: none; }
+.plate__by:hover { color: var(--accent); text-decoration: underline; }

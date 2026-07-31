@@ -149,6 +149,18 @@
   var current = -1;
 
   function fact(k, v) { return v ? '<div class="fact"><dt>' + k + "</dt><dd>" + v + "</dd></div>" : ""; }
+
+  /* foto de la patente del país, cuando hay una verificada */
+  function plateShot(id) {
+    var p = (window.GG.plateImages || {})[id];
+    if (!p) return "";
+    var cap = p[LANG] || p.pt || "";
+    return '<figure class="plate"><img src="' + p.url + '" alt="' +
+      cap.split('"').join("&quot;") + '" loading="lazy" decoding="async">' +
+      "<figcaption>" + cap +
+      '<a class="plate__by" href="' + p.page + '" target="_blank" rel="noopener">' +
+      p.by + " · " + p.lic + "</a></figcaption></figure>";
+  }
   function rows(list) {
     return list.map(function (r) {
       return '<div class="mrow"><dt>' + r[0] + '<span>' + r[1] + "</span></dt><dd>" + r[2] + "</dd></div>";
@@ -179,7 +191,8 @@
     html += '<section class="blk"><h4 class="blk__t">' + t("bFacts") + '</h4><dl class="facts">' +
       fact(t("fSide"), enumT("side", c.side)) + fact(t("fLang"), c.lang) +
       fact(t("fScript"), c.scr) + fact(t("fDom"), c.dom) +
-      fact(t("fCov"), enumT("cov", c.cov)) + fact(t("fPlate"), tc(c, "plate")) + "</dl></section>";
+      fact(t("fCov"), enumT("cov", c.cov)) + fact(t("fPlate"), tc(c, "plate")) + "</dl>" +
+      plateShot(c.id) + "</section>";
 
     var meta = [["mCar", "mCarS", "car"], ["mBol", "mBolS", "bol"], ["mPol", "mPolS", "pol"],
       ["mRoad", "mRoadS", "road"], ["mSign", "mSignS", "sign"], ["mArch", "mArchS", "arch"],
