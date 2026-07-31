@@ -87,7 +87,7 @@ visualmente** antes de aceptarla.
 
 - **13 fotos ilustrativas** en las guías transversales (`guide-images.js`):
   bolardos, postes, flota, vegetación y fauna.
-- **78 patentes** en las fichas de país (`plate-images.js`), de 111 posibles.
+- **85 patentes** en las fichas de país (`plate-images.js`), de 111 posibles.
 
 La revisión visual no es un lujo: la selección automática por categoría devuelve
 material que se ve plausible pero enseña mal. Entre lo descartado hubo placas de
@@ -96,7 +96,7 @@ japonesa de 1949**, matrículas europeas fotografiadas **en Bielorrusia**, un
 **granero canadiense forrado de placas**, una placa de un **club de
 coleccionistas** estadounidense, un **mapa de Canadá** y varios diagramas.
 
-Los 33 países sin patente quedaron así a propósito: o su categoría en Commons
+Los 26 países sin patente quedaron así a propósito: o su categoría en Commons
 no existe con los nombres probados, o todo lo disponible contradecía lo que dice
 la ficha. Es preferible no mostrar imagen a mostrar una que enseñe algo falso.
 
