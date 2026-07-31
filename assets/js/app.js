@@ -245,6 +245,21 @@
     var tr = window.GG.guidesTr && GG.guidesTr[LANG] && GG.guidesTr[LANG][g.id];
     return tr || {};
   }
+  /* galería de imágenes verificadas de Wikimedia Commons */
+  function guideGallery(id) {
+    var imgs = (window.GG.guideImages || {})[id];
+    if (!imgs || !imgs.length) return "";
+    return '<div class="gshots">' + imgs.map(function (im) {
+      var cap = im[LANG] || im.pt || "";
+      return '<figure class="gshot">' +
+        '<img src="' + im.url + '" alt="' + cap.split('"').join("&quot;") +
+        '" loading="lazy" decoding="async">' +
+        "<figcaption>" + cap +
+        '<a class="gshot__by" href="' + im.page + '" target="_blank" rel="noopener">' +
+        im.by + " · " + im.lic + "</a></figcaption></figure>";
+    }).join("") + "</div>";
+  }
+
   function renderGuides() {
     var el = $("#guides");
     if (!el) return;
@@ -258,6 +273,7 @@
           '<span class="gcard__s">' + (x.sub || g.sub) + "</span></span>" +
           '<span class="gcard__x" aria-hidden="true">＋</span></button>' +
         '<div class="gcard__body"><p class="gcard__intro">' + (x.intro || g.intro) + "</p>" +
+          guideGallery(g.id) +
           items.map(function (i) { return '<div class="gitem"><b>' + i.n + "</b><span>" + i.t + "</span></div>"; }).join("") +
         "</div></article>";
     }).join("");
